@@ -7,6 +7,8 @@ fastapi==0.132.0
 greenlet==3.3.2
 h11==0.16.0
 idna==3.11
+mariadb==1.1.14
+packaging==26.0
 pydantic==2.12.5
 pydantic_core==2.41.5
 PyMySQL==1.1.2
