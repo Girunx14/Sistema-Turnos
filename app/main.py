@@ -1,9 +1,18 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine
 from app.models import *
 from app.routers import tipo_area, area, estatu, genero, usuario, turno, contador
 
 app = FastAPI(title="Sistema de Turnos", version="1.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(tipo_area.router)
 app.include_router(area.router)
