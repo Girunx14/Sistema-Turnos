@@ -8,10 +8,12 @@ from app.schemas.genero import GeneroOut
 
 class TurnoBase(BaseModel):
     fk_area_asignada: Optional[int] = None
-    fk_genero: Optional[int] = None
 
 class TurnoCreate(TurnoBase):
-    pass  ##* El folio, fecha y estatus se generan automáticamente
+    pass
+
+class TurnoAtender(BaseModel):
+    fk_genero: Optional[int] = None  # El ejecutivo registra el género al atender
 
 class TurnoOut(BaseModel):
     id: int

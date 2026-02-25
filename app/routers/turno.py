@@ -4,7 +4,7 @@ from app.database import get_db
 from app.models.turno import Turno
 from app.models.contador import Contador
 from app.models.area import Area
-from app.schemas.turno import TurnoCreate, TurnoOut
+from app.schemas.turno import TurnoCreate, TurnoOut, TurnoAtender
 from datetime import datetime
 
 router = APIRouter(prefix="/turno", tags=["Turno"])
@@ -22,14 +22,12 @@ def obtener(id: int, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=TurnoOut)
 def crear(data: TurnoCreate, db: Session = Depends(get_db)):
-    # Obtener el tipo de área para generar el folio
     area = db.query(Area).filter(Area.id == data.fk_area_asignada).first()
     if not area:
         raise HTTPException(status_code=404, detail="Área no encontrada")
 
     hoy = datetime.now().date()
 
-    # Buscar o crear el contador del día para ese tipo de área
     contador = db.query(Contador).filter(
         Contador.fk_tipo_area == area.fk_tipo_area,
         Contador.fecha == hoy
@@ -41,9 +39,8 @@ def crear(data: TurnoCreate, db: Session = Depends(get_db)):
     else:
         contador.consecutivo += 1
 
-    db.flush()  # Para obtener el consecutivo actualizado
+    db.flush()
 
-    # Generar folio: prefijo del tipo de área + consecutivo con ceros
     prefijo = area.tipo_area.nombre[:2].upper()
     folio = f"{prefijo}{str(contador.consecutivo).zfill(3)}"
 
@@ -51,8 +48,7 @@ def crear(data: TurnoCreate, db: Session = Depends(get_db)):
         folio=folio,
         fecha_hora=datetime.now(),
         fk_area_asignada=data.fk_area_asignada,
-        fk_estatu=1,  # 1 = En espera (asegúrate de tener este estatus en tu BD)
-        fk_genero=data.fk_genero
+        fk_estatu=1,
     )
 
     db.add(nuevo_turno)
@@ -61,12 +57,14 @@ def crear(data: TurnoCreate, db: Session = Depends(get_db)):
     return nuevo_turno
 
 @router.put("/{id}/atender", response_model=TurnoOut)
-def atender(id: int, db: Session = Depends(get_db)):
+def atender(id: int, data: TurnoAtender, db: Session = Depends(get_db)):
     turno = db.query(Turno).filter(Turno.id == id).first()
     if not turno:
         raise HTTPException(status_code=404, detail="No encontrado")
-    turno.fk_estatu = 2  # 2 = Atendido
+    turno.fk_estatu = 2
     turno.fecha_hora_atendida = datetime.now()
+    if data.fk_genero:
+        turno.fk_genero = data.fk_genero
     db.commit()
     db.refresh(turno)
     return turno
@@ -76,7 +74,7 @@ def cancelar(id: int, db: Session = Depends(get_db)):
     turno = db.query(Turno).filter(Turno.id == id).first()
     if not turno:
         raise HTTPException(status_code=404, detail="No encontrado")
-    turno.fk_estatu = 3  # 3 = Cancelado
+    turno.fk_estatu = 3
     db.commit()
     db.refresh(turno)
     return turno

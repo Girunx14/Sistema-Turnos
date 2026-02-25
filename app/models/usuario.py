@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from app.database import Base
 
 class Usuario(Base):
@@ -10,3 +11,6 @@ class Usuario(Base):
     nombre = Column(String(50), nullable=False)
     apellido_paterno = Column(String(50))
     apellido_materno = Column(String(50))
+    fk_area = Column(Integer, ForeignKey("area.id"), nullable=True)
+
+    area = relationship("Area")
