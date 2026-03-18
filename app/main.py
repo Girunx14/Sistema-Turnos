@@ -25,4 +25,4 @@ app.include_router(contador.router)
 
 @app.get("/")
 def root():
-    return {"mensaje": "API de Sistema de Turnos funcionando ✅"}
+    return {"mensaje": "API de Sistema de Turnos funcionando "}
